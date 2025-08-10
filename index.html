@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>DASHBOARD MONITORING CIKAR</title>
+<style>
+/* --- CSS tetap sama seperti yang kamu berikan --- */
+:root {
+  --bg:#f4f6f8;
+  --white:#fff;
+  --bri:#00529c;
+  --text:#0b1220;
+  --muted:#6b7280;
+  --card-shadow:0 8px 20px rgba(16,24,40,0.06);
+  --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --font-size: 14px;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+  background: var(--bg);
+  color: var(--text);
+}
+.header {
+  background: var(--white);
+  height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 4px solid var(--bri);
+  padding: 0 20px;
+}
+.logo-container { display: flex; align-items: center; height: 100%; }
+.logo { height: 60px; width: auto; object-fit: contain; flex-shrink: 0; }
+.logo-danantara { max-width: 140px; margin-right: 12px; }
+.logo-bri { max-width: 100px; margin-left: 12px; }
+.header h1 {
+  margin: 0; font-size: 20px; font-weight: 700; text-align: center;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  flex-grow: 1; padding: 0 16px;
+}
+@media (max-width: 520px) {
+  .header { height: 64px; padding: 0 12px; }
+  .logo { height: 36px; }
+  .logo-danantara { max-width: 70px; margin-right: 8px; }
+  .logo-bri { max-width: 60px; margin-left: 8px; }
+  .header h1 { font-size: 16px; padding: 0 8px; }
+}
+.category-bar {
+  background: var(--bri); padding: 10px 18px;
+  display: flex; justify-content: space-between; align-items: center;
+  color: white;
+}
+.cat-buttons { display: flex; gap: 8px; }
+.cat-button {
+  background: var(--white); color: var(--bri); border: 0;
+  padding: 8px 16px; border-radius: 8px; cursor: pointer;
+  font-weight: 700; transition: background-color 0.3s ease;
+}
+.cat-button:hover:not(.active) { background-color: #d1e3fc; }
+.cat-button.active { background: #e9f2ff; }
+.action-buttons { display: flex; gap: 8px; }
+.refresh-btn, .logout-btn {
+  border: 0; padding: 8px 12px; border-radius: 8px; cursor: pointer;
+  font-weight: 700; transition: background-color 0.3s ease;
+}
+.refresh-btn { background: var(--white); color: var(--bri); }
+.refresh-btn:hover { background-color: #d1e3fc; }
+.logout-btn { background: #dc3545; color: #fff; }
+.logout-btn:hover { background-color: #c82333; }
+.container { max-width: 1200px; margin: 20px auto; padding: 0 16px; }
+.status-line { font-size: 13px; color: var(--muted); text-align: center; margin-bottom: 12px; }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.card {
+  background: var(--white); padding: 16px; border-radius: 12px;
+  box-shadow: var(--card-shadow); display: flex; flex-direction: column;
+  align-items: center; gap: 8px; text-align: center;
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
+  text-decoration: none; color: var(--text); position: relative;
+}
+.card:hover { transform: translateY(-4px); box-shadow: 0 14px 40px rgba(16,24,40,0.12); }
+.card img { width: 48px; height: 48px; object-fit: contain; border-radius: 8px; }
+.card .title { font-weight: 700; font-size: 14px; margin: 0; }
+.card .category-label {
+  position: absolute; top: 8px; right: 10px;
+  background: var(--bri); color: white; font-size: 10px; font-weight: 700;
+  padding: 2px 6px; border-radius: 12px;
+}
+@media (max-width: 840px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 520px) { .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<script>
+// Cek status login
+if (localStorage.getItem('isLoggedIn') !== 'true') {
+  window.location.href = 'login.html';
+}
+</script>
+
+<div class="header">
+  <div class="logo-container">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Danantara_Indonesia.svg" class="logo logo-danantara" />
+  </div>
+  <h1>DASHBOARD MONITORING CIKAR</h1>
+  <div class="logo-container">
+    <img src="https://bri.co.id/o/bri-corporate-theme/images/bri-logo.png" class="logo logo-bri" />
+  </div>
+</div>
+
+<div class="category-bar">
+  <div class="cat-buttons">
+    <button class="cat-button active" data-cat="RITEL">RITEL</button>
+    <button class="cat-button" data-cat="MIKRO">MIKRO</button>
+    <button class="cat-button" data-cat="IT">IT</button>
+    <button class="cat-button" data-cat="TOOLS">TOOLS</button>
+  </div>
+  <div class="action-buttons">
+    <button class="refresh-btn" id="refreshBtn">🔄 Refresh</button>
+    <button class="logout-btn" id="logoutBtn">🔓 Logout</button>
+  </div>
+</div>
+
+<div class="container">
+  <div id="status" class="status-line">Memuat data...</div>
+  <div id="grid" class="grid"></div>
+</div>
+
+<script>
+document.getElementById('logoutBtn').onclick = () => {
+  localStorage.removeItem('isLoggedIn');
+  window.location.href = 'login.html';
+};
+
+const profiles = {
+  MIKRO: ['mikrocikar'],
+  RITEL: ['brigunacikar','crrcikar'],
+  IT: [
+    { title: 'MONITORING ATM CRM EDC', url: 'http://172.18.65.42/monitoratm/' },
+    { title: 'KASEYA', url: 'https://kaseya.bri.co.id/Authenticate/?sso=true' },
+    { title: 'BITLOCKER BRI', url: 'https://forms.office.com/Pages/ResponsePage.aspx?id=eVl5dksk10WwQ64n5g9G7inhWaHwLqpEi3NhoWUK0hxURDFCQ05IT1AxUE5aUVhFT0tVNFFSQU0xMS4u' },
+    { title: 'CDMS', url: 'http://103.146.62.34:8088/cdms/index.jsp' },
+    { title: 'BRIVISION DOWNLOAD', url: 'https://drive.google.com/drive/folders/1RKS1JTdHECtkeLZZz73XUmDXkITEoZLm' },
+    { title: 'CONVERTER BRIVISION', url: 'https://converter.app/mp4-to-mpg/' },
+  ],
+  TOOLS: [
+    { title: 'Rekapitulasi Plafond', url: 'rekap.html' }
+  ]
+};
+
+const defaultIcon = "https://ugc.production.linktr.ee/bcdf1719-7114-476c-afae-6cdd8d9563fd_AHkbwyIWcjV1J6DrZPRbFTXacN7thUD9JXB4P3TeDn1LHBuONgXkz7pFt5zKAVvjPEuOAIAR8DBlUXnWHWRHDomr0HTx2CZzckKg.png";
+
+async function fetchViaProxy(u){
+  const res = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(u));
+  if(!res.ok) throw new Error(res.status);
+  return (await res.json()).contents;
+}
+function getFavicon(url) {
+  try { return new URL(url).origin + '/favicon.ico'; }
+  catch (e) { return null; }
+}
+function parseLinks(html){
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const links = [];
+  doc.querySelectorAll('a').forEach(a => {
+    if (a.href && !a.href.includes('linktr.ee')) {
+      let title = a.textContent.trim();
+      const iconImg = a.querySelector('img');
+      const icon = iconImg ? iconImg.src : getFavicon(a.href);
+      if (title) links.push({ title, url: a.href, icon: icon || defaultIcon });
+    }
+  });
+  return links;
+}
+async function loadFromLT(profile){
+  const html = await fetchViaProxy(`https://linktr.ee/${profile}`);
+  let links = parseLinks(html);
+  if(profiles.MIKRO.includes(profile)){
+    links = links.filter(a => !a.url.toLowerCase().includes('instagram.com'));
+  }
+  return links;
+}
+async function syncAll(){
+  status.textContent = 'Memuat...';
+  const all = {};
+  for(const cat of ['RITEL', 'MIKRO']){
+    all[cat] = [];
+    for(const p of profiles[cat]){
+      try {
+        const items = await loadFromLT(p);
+        if(cat === 'RITEL'){
+          const label = (p === 'brigunacikar') ? 'BRIGUNA' : (p === 'crrcikar' ? 'CRR' : '');
+          items.forEach(it => it.source = label);
+        }
+        all[cat].push(...items);
+      } catch(e){ console.error(e); }
+    }
+  }
+  all.IT = profiles.IT;
+  all.TOOLS = profiles.TOOLS;
+  window.data = all;
+  status.textContent = 'Selesai.';
+  render(getCurrentCategory());
+}
+function makeCard(i){
+  const labelHtml = i.source ? `<div class="category-label">${i.source}</div>` : '';
+  const iconSrc = i.icon || getFavicon(i.url) || defaultIcon;
+  return `<a class="card" href="${i.url}" target="_blank">${labelHtml}<img src="${iconSrc}"><div class="title">${i.title}</div></a>`;
+}
+function render(cat){
+  grid.innerHTML = window.data[cat].map(makeCard).join('') || `<div style="grid-column:1/-1;text-align:center;color:var(--muted)">Belum ada data</div>`;
+  status.textContent = `Menampilkan kategori ${cat}`;
+  document.querySelectorAll('.cat-button').forEach(b => {
+    b.classList.toggle('active', b.dataset.cat === cat);
+  });
+}
+function getCurrentCategory(){
+  const active = document.querySelector('.cat-button.active');
+  return active ? active.dataset.cat : 'RITEL';
+}
+document.querySelectorAll('.cat-button').forEach(b => {
+  b.onclick = () => render(b.dataset.cat);
+});
+document.getElementById('refreshBtn').onclick = () => {
+  const scrollY = window.scrollY;
+  syncAll().then(() => window.scrollTo(0, scrollY));
+};
+const status = document.getElementById('status'), grid = document.getElementById('grid');
+syncAll();
+</script>
+</body>
+</html>
